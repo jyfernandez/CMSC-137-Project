@@ -1,7 +1,8 @@
 # import the pygame module, so you can use it
 import pygame
 import random
-from car import Car
+import socket
+from fish import Fish
 
 pygame.init()
 
@@ -91,7 +92,12 @@ def getFishPoints(player, score):
 
 # define a main function
 def main():
-     
+	UDP_IP_ADDRESS = "127.0.0.1"
+	UDP_PORT_NO = 6789
+	print("GOT IT")
+
+	serverSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	serverSock.bind((UDP_IP_ADDRESS, UDP_PORT_NO))
     # initialize the pygame module
    
     # create a surface on screen that has the size of 240 x 180
@@ -111,21 +117,21 @@ def main():
 	all_sprites_list = pygame.sprite.Group() #creates a list of sprites
 	block_list = pygame.sprite.Group()
  
-	playerCar = Car(bright_blue, 45, 45) #parameters: (color of the rect, width, height)
-	playerCar.rect.x = 50 # initial x pos
-	playerCar.rect.y = 50 # initial y pos
-	playerCar2 = Car(bright_blue, 45, 45)
+	# playerFish = Fish(bright_blue, 45, 45) #parameters: (color of the rect, width, height)
+	# playerFish.rect.x = 50 # initial x pos
+	# playerFish.rect.y = 50 # initial y pos
+	playerCar2 = Fish(bright_blue, 45, 45)
 	playerCar2.rect.x = 100
 	playerCar2.rect.y = 50
 	 
 	# Add the car to the list of objects
-	all_sprites_list.add(playerCar)
+	all_sprites_list.add(playerFish)
 	all_sprites_list.add(playerCar2)
 	block_list.add(playerCar2)
 
 	for i in range(50):
 	    # This represents a block
-	    block = Car(black, 20, 15)
+	    block = Fish(black, 20, 15)
 	 
 	    # Set a random location for the block
 	    block.rect.x = random.randrange(800)
@@ -139,68 +145,23 @@ def main():
 
     # main loop
 	while running:
-        # event handling, gets all event from the eventqueue
-		for event in pygame.event.get():
 		# only do something if the event is of type QUIT
-			if event.type == pygame.QUIT:
-			# change the value to False, to exit the main loop
-				running = False
-				quit()
-	
-			if event.type == pygame.KEYDOWN:
-				#################### From here up to the other end are for the movement of player1
-				if event.key == pygame.K_LEFT:
-					x_change = -1
-					playerCar.changeDirection("Left") # Changes the direction to which the fish is facing
-					size = 1
-				elif event.key == pygame.K_RIGHT:
-					x_change = 1
-					playerCar.changeDirection("Right") # Changes the direction to which the fish is facing
-					size = 2
-				elif event.key ==  pygame.K_UP:
-					y_change = -1
-					size = 1
-				elif event.key == pygame.K_DOWN:
-					y_change = 1
-					size = 2
-				#################### 
-				#################### From here up to the other end are for the movement of player2
-				if event.key == pygame.K_a:
-					x_change2 = -1
-					playerCar2.changeDirection("Left") # Changes the direction to which the fish is facing
-					size = 1
-				elif event.key == pygame.K_d:
-					x_change2 = 1
-					playerCar2.changeDirection("Right") # Changes the direction to which the fish is facing
-					size = 2
-				elif event.key ==  pygame.K_w:
-					y_change2 = -1
-					size = 1
-				elif event.key == pygame.K_s:
-					y_change2 = 1
-					size = 2
-				####################
-			if event.type == pygame.KEYUP:
-				if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
-					x_change = 0
-				elif event.key == pygame.K_UP or event.key == pygame.K_DOWN:
-					y_change = 0
-				if event.key == pygame.K_a or event.key == pygame.K_d:
-					x_change2 = 0
-				elif event.key == pygame.K_w or event.key == pygame.K_s:
-					y_change2 = 0
+		event = pygame.event.poll()
+		if event.type == pygame.QUIT:
+		# change the value to False, to exit the main loop
+			running = False
+			quit()
 
-		playerCar.moveHorizontal(x_change) #increases the x position of player1
-		playerCar.moveVertical(y_change) #increases the x position of player2
-		playerCar2.moveHorizontal(x_change2) #increases the y position of player1
-		playerCar2.moveVertical(y_change2) #increases the y position of player2
-		
+		playerFish.handle_keys()
+		playerCar2.handle_keys()
+		# data, addr = serverSock.recvfrom(1024)
+		# print("Message: " + data.decode())
 
 		all_sprites_list.update() #updates the list with all the changes made.
-		blocks_hit_list = pygame.sprite.spritecollide(playerCar, block_list, True)
+		blocks_hit_list = pygame.sprite.spritecollide(playerFish, block_list, True)
 		for block in blocks_hit_list:
 		    score +=1
-		    getFishPoints(playerCar, score)
+		    getFishPoints(playerFish, score)
 		    print(score)
 
 		# updates the background with the starting index in the window: (0,0)
